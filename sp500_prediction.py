@@ -2,11 +2,8 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 import yfinance as yf
-import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.model_selection import GridSearchCV
-from catboost import CatBoostRegressor
 import requests
 import time
 import pytz
@@ -64,40 +61,6 @@ def predict(date_str, data):
 
     return next_open_pred[0]
 
-def authenticate():
-    response = requests.post(f'https://api.xtb.com/login', json={
-        'user': 'quentintarlet525@gmail.com',
-        'password': 'Qtarlet69*'
-    })
-    data = response.json()
-    return data['streamSessionId']
-
-def place_order(session_id, symbol, direction, price, volume):
-    response = requests.post(f'https://api.xtb.com/trade', json={
-        'sessionId': session_id,
-        'symbol': symbol,
-        'direction': direction,
-        'price': price,
-        'volume': volume,
-        'type': 'MARKET',
-        'stopLoss': None,
-        'takeProfit': None
-    })
-    return response.json()
-
-def get_live_price(session_id):
-    response = requests.get(f'https://api.xtb.com/price', params={
-        'sessionId': session_id,
-        'symbol': 'S&P500'
-    })
-    return response.json()['price']
-
-def close_position(session_id, position_id):
-    response = requests.post(f'https://api.xtb.com/close', json={
-        'sessionId': session_id,
-        'positionId': position_id
-    })
-    return response.json()
 
 def main():
 

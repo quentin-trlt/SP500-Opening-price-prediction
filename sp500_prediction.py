@@ -61,6 +61,49 @@ def predict(date_str, data):
 
     return next_open_pred[0]
 
+def simulate_performance(data, period=2600, capital=100):
+    period += 1
+    capital_historic = []
+    dates_historical = [data['Date'].iloc[-period]]  
+    capital_historic.append(capital)
+    
+    for i in range(period - 1):
+
+        x_hist = data[['Open', 'Close', 'Volume', 'High_Low_Percent', 'VIX', 'Dollar Index','T-Bill', 'RSI']].iloc[:-1].values
+        y_hist = data['Open'].iloc[1:].values
+        
+        train_model(x_hist, y_hist)
+        
+        current_date = data['Date'].iloc[-(period - i)]
+        
+        predicted_open = predict(current_date.strftime("%Y-%m-%d"), data)
+        
+        last_close = data.loc[data['Date'] == current_date, 'Close'].values[-1]
+        
+        next_date = data['Date'].iloc[-(period - i - 1)]
+        
+        actual_open = data.loc[data['Date'] == next_date, 'Open'].values[-1]
+        
+        if predicted_open > last_close:
+            # Achat 
+            capital *= (actual_open/ last_close)
+        else:
+            # Vente 
+            capital *= (last_close / actual_open)
+        
+        dates_historical.append(next_date)
+        capital_historic.append(capital)
+    
+    # Graphique de l'évolution du capital
+    plt.figure(figsize=(12, 6))
+    plt.plot(dates_historical, capital_historic, label="Capital")
+    plt.xlabel("Date")
+    plt.ylabel("Capital")
+    plt.title("Évolution du capital basé sur les prédictions du modèle")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
 
 def main():
 
@@ -121,6 +164,9 @@ def main():
     next_open_pred = predict(date, sp500_historical)
     print("Prédiction d'ouverture :", next_open_pred)
     print("Dernière cloture :", sp500_historical.loc[sp500_historical['Date'] == pd.to_datetime(date).date(), 'Close'].values[-1])
+
+    simulate_performance(sp500_historical)
+
 
 if __name__ == "__main__":
     main()
